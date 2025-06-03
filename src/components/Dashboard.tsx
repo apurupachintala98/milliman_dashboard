@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react"
-import { ChevronDown, Plus, RefreshCw, Settings, HelpCircle, Menu } from 'lucide-react'
-import { Sidebar } from "./Sidebar"
-import { Card } from "./Card"
-import { AreaChartCard } from "./AreaChartCard"
-import { useChartData } from "../hooks/useChartData"
-import { useRefreshIntervals, type RefreshInterval } from "../hooks/useRefreshIntervals"
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Plus, RefreshCw, Settings, HelpCircle, Menu } from 'lucide-react';
+import { Sidebar } from "./Sidebar";
+import { Card } from "./Card";
+import { AreaChartCard } from "./AreaChartCard";
+import { useChartData } from "../hooks/useChartData";
+import ProjectService from "../services/ProjectService";
+import { useRefreshIntervals, type RefreshInterval } from "../hooks/useRefreshIntervals";
 
 interface DashboardProps {
     // You can add props here if needed
@@ -17,7 +18,7 @@ export function Dashboard({ }: DashboardProps) {
     const { intervals, selectedInterval, setSelectedInterval } = useRefreshIntervals()
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
-
+    const [projectDetails, setProjectDetails] = useState([]);
     const {
         severityData,
         statusData,
@@ -39,6 +40,17 @@ export function Dashboard({ }: DashboardProps) {
     //     document.addEventListener("mousedown", handleClickOutside)
     //     return () => document.removeEventListener("mousedown", handleClickOutside)
     // }, [])
+
+     useEffect(() => {
+    const fetchData = async () => {
+      const data = await ProjectService.getAllApiUpdates();
+      setProjectDetails(data);
+      console.log("api data update", data);
+    };
+
+    fetchData();
+  }, []);
+
 
     useEffect(() => {
         const intervalId = setInterval(async () => {
