@@ -94,8 +94,9 @@ export function Dashboard({ }: DashboardProps) {
         const now = new Date();
         setLastRefreshedAt(now);
         // updateTimeText(now);
-
-        if (isManual) setIsRefreshing(false);
+        if (isManual) {
+            setTimeout(() => setIsRefreshing(false), 300);
+        }
     };
 
     useEffect(() => {
@@ -165,17 +166,8 @@ export function Dashboard({ }: DashboardProps) {
                                 className="flex items-center px-3 py-2 bg-gray-800 border border-gray-700 rounded-md hover:bg-gray-700 text-gray-300"
                                 onClick={handleManualRefresh}
                             >
-                                {isRefreshing ? (
-                                    <>
-                                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                                        Refreshing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <RefreshCw className="h-4 w-4 mr-2" />
-                                        Refresh
-                                    </>
-                                )}
+                                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                                {isRefreshing ? 'Refreshing...' : 'Refresh'}
                             </button>
 
                         </div>
