@@ -11,15 +11,45 @@ interface DashboardProps {
     // You can add props here if needed
 }
 
+interface ApiData {
+    getToken: {
+        status_code: number;
+        body: {
+            access_token: string;
+            token_type: string;
+            expires_in: number;
+        };
+    };
+    mcidSearch: {
+        status_code: number;
+        body: {
+            requestID: string;
+            processStatus: {
+                completed: string;
+                isMemput: string;
+                errorCode: string;
+                errorText: string;
+            };
+            mcidList: null;
+            memkey: null;
+            memidnum: null;
+            matchScore: null;
+        };
+    };
+    medicalSubmit: {
+        status_code: number;
+    };
+}
+
 export function Dashboard({ }: DashboardProps) {
+    const hasFetched = useRef(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const { intervals, selectedInterval, setSelectedInterval } = useRefreshIntervals()
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
-    const [projectDetails, setProjectDetails] = useState([]);
-    const {
+    const [projectDetails, setProjectDetails] = useState<ApiData | null>(null); const {
         severityData,
         statusData,
         responseTimeData,
@@ -29,27 +59,49 @@ export function Dashboard({ }: DashboardProps) {
         refreshData
     } = useChartData()
 
-    // Close dropdown when clicking outside
-    // useEffect(() => {
-    //     const handleClickOutside = (event: MouseEvent) => {
-    //         if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-    //             setIsDropdownOpen(false)
-    //         }
-    //     }
+    useEffect(() => {
+        const fetchData = async () => {
+            if (hasFetched.current) return;
+            hasFetched.current = true;
+            //   const apiData = await ProjectService.getAllApiUpdates();
+            const apiData = {
+                getToken: {
+                    status_code: 200,
+                    body: {
+                        access_token: "your-token",
+                        token_type: "Bearer",
+                        expires_in: 899,
+                    },
+                },
+                mcidSearch: {
+                    status_code: 200,
+                    body: {
+                        requestID: "1",
+                        processStatus: {
+                            completed: "true",
+                            isMemput: "false",
+                            errorCode: "ENOREC",
+                            errorText: "no candidates found.",
+                        },
+                        mcidList: null,
+                        memkey: null,
+                        memidnum: null,
+                        matchScore: null,
+                    },
+                },
+                medicalSubmit: {
+                    status_code: 200,
+                },
+            };
 
-    //     document.addEventListener("mousedown", handleClickOutside)
-    //     return () => document.removeEventListener("mousedown", handleClickOutside)
-    // }, [])
+            setProjectDetails(apiData);
+            console.log("Access Token:", apiData.getToken);
+            console.log("MCID Search Status:", apiData.mcidSearch);
+            console.log("Medical Submit Status Code:", apiData.medicalSubmit);
+        };
 
-     useEffect(() => {
-    const fetchData = async () => {
-      const data = await ProjectService.getAllApiUpdates();
-      setProjectDetails(data);
-      console.log("api data update", data);
-    };
-
-    fetchData();
-  }, []);
+        fetchData();
+    }, []);
 
 
     useEffect(() => {
@@ -145,70 +197,71 @@ export function Dashboard({ }: DashboardProps) {
 
                     {/* Dashboard Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <Card
-                            title="PING"
-                            data={severityData}
-                            centerText={`1620
-vulnerabilities`}
-                            latestRun="May 20, 2025"
-                            latestDataMed="124"
-                            latestDataRx="75"
-                            recordCount="1,234"
-                        />
+                   {projectDetails && (
+  <>
+    <Card
+      title="Token Status"
+      data={[
+        {
+          name: "Token Status",
+          value: projectDetails.getToken.status_code,
+          color: projectDetails.getToken.status_code === 200 ? "green" : "red",
+        },
+      ]}
+      centerText={
+        projectDetails.getToken.status_code === 200
+          ? "success\n"
+          : "There are few vulnerabilities\n"
+      }
+      latestRun="May 20, 2025"
+      latestDataMed="124"
+      latestDataRx="75"
+      recordCount="1,234"
+    />
 
-                        <Card
-                            title="API"
-                            data={statusData}
-                            centerText={`1620
-vulnerabilities`}
-                            latestRun="May 20, 2025"
-                            latestDataMed="124"
-                            latestDataRx="75"
-                            recordCount="1,234"
-                        />
+    <Card
+      title="MCID"
+      data={[
+        {
+          name: "MCID Search",
+          value: projectDetails.mcidSearch.status_code,
+          color: projectDetails.mcidSearch.status_code === 200 ? "green" : "red",
+        },
+      ]}
+      centerText={
+        projectDetails.mcidSearch.status_code === 200
+          ? "success\n"
+          : "There are few vulnerabilities\n"
+      }
+      latestRun="May 20, 2025"
+      latestDataMed="124"
+      latestDataRx="75"
+      recordCount="1,234"
+    />
 
-                        <Card
-                            title="MCID"
-                            data={responseTimeData}
-                            centerText={`1620
-vulnerabilities`}
-                            latestRun="May 20, 2025"
-                            latestDataMed="124"
-                            latestDataRx="75"
-                            recordCount="1,234"
-                        />
+    <Card
+      title="Medical"
+      data={[
+        {
+          name: "Medical Submit",
+          value: projectDetails.medicalSubmit.status_code,
+          color: projectDetails.medicalSubmit.status_code === 200 ? "green" : "red",
+        },
+      ]}
+      centerText={
+        projectDetails.medicalSubmit.status_code === 200
+          ? "success\n"
+          : "There are few vulnerabilities\n"
+      }
+      latestRun="May 20, 2025"
+      latestDataMed="124"
+      latestDataRx="75"
+      recordCount="1,234"
+    />
+  </>
+)}
 
-                        <Card
-                            title="MedClaims"
-                            data={errorRateData}
-                            centerText={`1620
-vulnerabilities`}
-                            latestRun="May 20, 2025"
-                            latestDataMed="124"
-                            latestDataRx="75"
-                            recordCount="1,234"
-                        />
 
-                        <Card
-                            title="RxClaims"
-                            data={endpointData}
-                            centerText={`1620
-vulnerabilities`}
-                            latestRun="May 20, 2025"
-                            latestDataMed="124"
-                            latestDataRx="75"
-                            recordCount="1,234"
-                        />
-
-                        <AreaChartCard
-                            title="Cumulative API Analysis"
-                            data={areaChartData}
-                            color="#3498db"
-                            latestRun="May 20, 2025"
-                            latestDataMed="124"
-                            latestDataRx="75"
-                            recordCount="1,234"
-                        />
                     </div>
                 </div>
             </div>
